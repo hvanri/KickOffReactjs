@@ -1,18 +1,24 @@
-function OrdersToolbar() {
+function OrdersToolbar({ summary, loading, error }) {
+  const { totalOrders, pendingPayment, readyToShip } = summary || {
+    totalOrders: 0,
+    pendingPayment: 0,
+    readyToShip: 0,
+  };
+
   return (
     <section className="orders-toolbar" aria-label="Order management filters">
       <div className="toolbar-summary">
         <div>
           <p className="toolbar-label">Total orders</p>
-          <strong>1,284</strong>
+          <strong>{loading ? "..." : totalOrders.toLocaleString()}</strong>
         </div>
         <div>
           <p className="toolbar-label">Pending payment</p>
-          <strong>42</strong>
+          <strong>{loading ? "..." : pendingPayment.toLocaleString()}</strong>
         </div>
         <div>
           <p className="toolbar-label">Ready to ship</p>
-          <strong>86</strong>
+          <strong>{loading ? "..." : readyToShip.toLocaleString()}</strong>
         </div>
       </div>
 
@@ -25,8 +31,9 @@ function OrdersToolbar() {
               type="search"
               placeholder="Search order #, customer, email"
               aria-label="Search orders"
+              disabled={!summary || loading || error}
             />
-            <button type="button" className="button button-tertiary">
+            <button type="button" className="button button-tertiary" disabled={!summary || loading || error}>
               Search
             </button>
           </div>
@@ -34,7 +41,7 @@ function OrdersToolbar() {
 
         <div className="toolbar-field">
           <label htmlFor="order-status">Order status</label>
-          <select id="order-status" defaultValue="all">
+          <select id="order-status" defaultValue="all" disabled={loading || Boolean(error)}>
             <option value="all">All statuses</option>
             <option value="processing">Processing</option>
             <option value="complete">Complete</option>
@@ -45,7 +52,7 @@ function OrdersToolbar() {
 
         <div className="toolbar-field">
           <label htmlFor="order-date">Date range</label>
-          <select id="order-date" defaultValue="30">
+          <select id="order-date" defaultValue="30" disabled={loading || Boolean(error)}>
             <option value="7">Last 7 days</option>
             <option value="30">Last 30 days</option>
             <option value="90">Last 90 days</option>
@@ -54,13 +61,13 @@ function OrdersToolbar() {
       </form>
 
       <div className="toolbar-actions">
-        <button type="button" className="button button-secondary">
+        <button type="button" className="button button-secondary" disabled={loading || Boolean(error)}>
           Export Orders
         </button>
-        <button type="button" className="button button-secondary">
+        <button type="button" className="button button-secondary" disabled={loading || Boolean(error)}>
           Print Invoices
         </button>
-        <button type="button" className="button button-secondary">
+        <button type="button" className="button button-secondary" disabled={loading || Boolean(error)}>
           Update Status
         </button>
       </div>
