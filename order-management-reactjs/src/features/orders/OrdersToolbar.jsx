@@ -1,4 +1,14 @@
-function OrdersToolbar({ summary, loading, error, selectedStatus, onStatusChange }) {
+function OrdersToolbar({
+  summary,
+  loading,
+  error,
+  selectedStatus,
+  onStatusChange,
+  searchTerm,
+  onSearchTermChange,
+  dateRange,
+  onDateRangeChange,
+}) {
   const { totalOrders, pendingPayment, readyToShip } = summary || {
     totalOrders: 0,
     pendingPayment: 0,
@@ -31,9 +41,16 @@ function OrdersToolbar({ summary, loading, error, selectedStatus, onStatusChange
               type="search"
               placeholder="Search order #, customer, email"
               aria-label="Search orders"
-              disabled={!summary || loading || error}
+              value={searchTerm}
+              onChange={(event) => onSearchTermChange(event.target.value)}
+              disabled={loading || Boolean(error)}
             />
-            <button type="button" className="button button-tertiary" disabled={!summary || loading || error}>
+            <button
+              type="button"
+              className="button button-tertiary"
+              disabled={loading || Boolean(error)}
+              onClick={(event) => event.preventDefault()}
+            >
               Search
             </button>
           </div>
@@ -57,7 +74,12 @@ function OrdersToolbar({ summary, loading, error, selectedStatus, onStatusChange
 
         <div className="toolbar-field">
           <label htmlFor="order-date">Date range</label>
-          <select id="order-date" defaultValue="30" disabled={loading || Boolean(error)}>
+          <select
+            id="order-date"
+            value={dateRange}
+            onChange={(event) => onDateRangeChange(event.target.value)}
+            disabled={loading || Boolean(error)}
+          >
             <option value="7">Last 7 days</option>
             <option value="30">Last 30 days</option>
             <option value="90">Last 90 days</option>
