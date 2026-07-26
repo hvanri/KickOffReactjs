@@ -1,4 +1,4 @@
-function OrdersToolbar({ summary, loading, error }) {
+function OrdersToolbar({ summary, loading, error, selectedStatus, onStatusChange }) {
   const { totalOrders, pendingPayment, readyToShip } = summary || {
     totalOrders: 0,
     pendingPayment: 0,
@@ -41,7 +41,12 @@ function OrdersToolbar({ summary, loading, error }) {
 
         <div className="toolbar-field">
           <label htmlFor="order-status">Order status</label>
-          <select id="order-status" defaultValue="all" disabled={loading || Boolean(error)}>
+          <select
+            id="order-status"
+            value={selectedStatus}
+            onChange={(event) => onStatusChange(event.target.value)}
+            disabled={loading || Boolean(error)}
+          >
             <option value="all">All statuses</option>
             <option value="processing">Processing</option>
             <option value="complete">Complete</option>
