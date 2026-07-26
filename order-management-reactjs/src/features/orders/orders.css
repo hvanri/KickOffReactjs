@@ -236,26 +236,42 @@
   inset: 0;
   background: rgba(18, 28, 48, 0.65);
   display: grid;
-  place-items: center;
+  align-items: start;
+  justify-items: center;
   padding: 1.5rem;
+  overflow: auto;
   z-index: 50;
 }
 
 .modal-panel {
   width: min(100%, 920px);
+  max-height: calc(100vh - 3rem);
   background: #ffffff;
   border-radius: 1rem;
   box-shadow: 0 24px 64px rgba(15, 23, 42, 0.2);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .modal-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 1rem;
   padding: 1.5rem;
   border-bottom: 1px solid #e2e8f0;
+  background: #ffffff;
+}
+
+.modal-content {
+  padding: 1.5rem;
+  overflow: auto;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .modal-header h3 {

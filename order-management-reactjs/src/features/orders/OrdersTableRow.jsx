@@ -31,8 +31,14 @@ function OrdersTableRow({ order }) {
       </tr>
 
       {isOpen && (
-        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby={`order-details-${order.id}`}>
-          <div className="modal-panel">
+        <div
+          className="modal-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={`order-details-${order.id}`}
+          onClick={() => setIsOpen(false)}
+        >
+          <div className="modal-panel" onClick={(event) => event.stopPropagation()}>
             <div className="modal-header">
               <div>
                 <p className="toolbar-label">Order details</p>
