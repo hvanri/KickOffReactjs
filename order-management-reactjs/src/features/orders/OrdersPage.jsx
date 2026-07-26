@@ -39,6 +39,36 @@ function normalizeOrder(item) {
   const itemCount = typeof item.total_item_count === "number"
     ? item.total_item_count
     : item.total_qty_ordered;
+  const normalizedItems = Array.isArray(item.items)
+    ? item.items.map((child) => {
+        const itemTotal = typeof child.row_total_incl_tax === "number"
+          ? child.row_total_incl_tax
+          : child.row_total;
+        return {
+          id: child.item_id || child.sku,
+          name: child.name,
+          sku: child.sku,
+          quantity: child.qty_ordered,
+          price: typeof child.price === "number"
+            ? new Intl.NumberFormat("en-US", {
+                style: "currency",
+                currency,
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              }).format(child.price)
+            : "—",
+          rowTotal: typeof itemTotal === "number"
+            ? new Intl.NumberFormat("en-US", {
+                style: "currency",
+                currency,
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              }).format(itemTotal)
+            : "—",
+          thumbnail: child.extension_attributes?.image_url || null,
+        };
+      })
+    : [];
 
   return {
     id: item.increment_id || item.entity_id || "—",
@@ -54,10 +84,8 @@ function normalizeOrder(item) {
     payment: paymentLabel,
     total,
     status: item.status || item.state || "Unknown",
-    items:
-      typeof itemCount === "number"
-        ? `${itemCount} item${itemCount === 1 ? "" : "s"}`
-        : "—",
+    itemCount: typeof itemCount === "number" ? itemCount : 0,
+    items: normalizedItems,
   };
 }
 
