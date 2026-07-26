@@ -72,6 +72,8 @@ function normalizeOrder(item) {
 
   return {
     id: item.increment_id || item.entity_id || "—",
+    customerEmail: item.customer_email || billing.email || "",
+    createdAt: item.created_at ? new Date(item.created_at).getTime() : null,
     date: item.created_at
       ? new Date(item.created_at).toLocaleDateString("en-US", {
           year: "numeric",
@@ -130,6 +132,8 @@ function OrdersPage() {
     readyToShip: 0,
   });
   const [selectedStatus, setSelectedStatus] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [dateRange, setDateRange] = useState("30");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -160,7 +164,10 @@ function OrdersPage() {
       })
       .then((data) => {
         const items = Array.isArray(data.items) ? data.items : [];
-        setOrders(items.map(normalizeOrder));
+        const normalizedOrders = items
+          .map(normalizeOrder)
+          .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        setOrders(normalizedOrders);
         setSummary(getSummary(items));
         if (items.length === 0) {
           setError("No orders returned from Magento.");
@@ -189,9 +196,22 @@ function OrdersPage() {
     canceled: (status) => status.includes("cancel"),
   };
 
-  const filteredOrders = orders.filter((order) =>
-    statusMap[selectedStatus]((order.status || "").toLowerCase()),
-  );
+  const normalizedSearch = searchTerm.trim().toLowerCase();
+  const now = Date.now();
+  const rangeDays = Number(dateRange);
+  const cutoff = rangeDays > 0 ? now - rangeDays * 24 * 60 * 60 * 1000 : 0;
+  const filteredOrders = orders.filter((order) => {
+    const matchesStatus = statusMap[selectedStatus]((order.status || "").toLowerCase());
+    const matchesSearch =
+      normalizedSearch === "" ||
+      (order.id || "").toLowerCase().includes(normalizedSearch) ||
+      (order.billTo || "").toLowerCase().includes(normalizedSearch) ||
+      (order.customerEmail || "").toLowerCase().includes(normalizedSearch);
+    const matchesDate =
+      !order.createdAt || rangeDays <= 0 ? true : order.createdAt >= cutoff;
+
+    return matchesStatus && matchesSearch && matchesDate;
+  });
 
   return (
     <section className="orders-page">
@@ -203,6 +223,10 @@ function OrdersPage() {
         error={error}
         selectedStatus={selectedStatus}
         onStatusChange={setSelectedStatus}
+        searchTerm={searchTerm}
+        onSearchTermChange={setSearchTerm}
+        dateRange={dateRange}
+        onDateRangeChange={setDateRange}
       />
 
       <OrdersTable orders={filteredOrders} loading={loading} error={error} />
