@@ -101,6 +101,7 @@ function OrdersPage() {
     pendingPayment: 0,
     readyToShip: 0,
   });
+  const [selectedStatus, setSelectedStatus] = useState("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -146,13 +147,37 @@ function OrdersPage() {
       });
   }, []);
 
+  const statusMap = {
+    all: () => true,
+    processing: (status) =>
+      ["processing", "picking", "on_picking", "on_delivery", "shipping"].some((value) =>
+        status.includes(value),
+      ),
+    complete: (status) => status.includes("complete") || status.includes("closed"),
+    pending: (status) =>
+      ["pending", "payment_review", "payment_pending", "pending_payment"].some((value) =>
+        status.includes(value),
+      ),
+    canceled: (status) => status.includes("cancel"),
+  };
+
+  const filteredOrders = orders.filter((order) =>
+    statusMap[selectedStatus]((order.status || "").toLowerCase()),
+  );
+
   return (
     <section className="orders-page">
       <OrdersHeader />
 
-      <OrdersToolbar summary={summary} loading={loading} error={error} />
+      <OrdersToolbar
+        summary={summary}
+        loading={loading}
+        error={error}
+        selectedStatus={selectedStatus}
+        onStatusChange={setSelectedStatus}
+      />
 
-      <OrdersTable orders={orders} loading={loading} error={error} />
+      <OrdersTable orders={filteredOrders} loading={loading} error={error} />
     </section>
   );
 }
