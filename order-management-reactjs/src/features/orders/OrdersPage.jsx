@@ -1,16 +1,158 @@
+import { useEffect, useState } from "react";
 import OrdersHeader from "./OrdersHeader";
 import OrdersToolbar from "./OrdersToolbar";
 import OrdersTable from "./OrdersTable";
 import "./orders.css";
 
+const apiUrl = import.meta.env.VITE_MAGENTO_API_URL;
+const apiToken = import.meta.env.VITE_MAGENTO_API_TOKEN;
+
+function normalizeOrder(item) {
+  const billing = item.billing_address || {};
+  const shippingAddress =
+    item.extension_attributes?.shipping_assignments?.[0]?.shipping?.address || {};
+  const customerName = [
+    item.customer_firstname || billing.firstname,
+    item.customer_lastname || billing.lastname,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+  const shippingName = [shippingAddress.firstname, shippingAddress.lastname]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+  const currency = item.order_currency_code || item.base_currency_code || "PHP";
+  const total = typeof item.grand_total === "number"
+    ? new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(item.grand_total)
+    : "—";
+  const paymentLabel =
+    item.payment?.additional_information?.[0] ||
+    item.payment?.method_title ||
+    item.payment?.method ||
+    "—";
+  const itemCount = typeof item.total_item_count === "number"
+    ? item.total_item_count
+    : item.total_qty_ordered;
+
+  return {
+    id: item.increment_id || item.entity_id || "—",
+    date: item.created_at
+      ? new Date(item.created_at).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        })
+      : "—",
+    billTo: customerName || item.customer_email || "Guest",
+    shipTo: shippingName || customerName || "Guest",
+    payment: paymentLabel,
+    total,
+    status: item.status || item.state || "Unknown",
+    items:
+      typeof itemCount === "number"
+        ? `${itemCount} item${itemCount === 1 ? "" : "s"}`
+        : "—",
+  };
+}
+
+function getSummary(items) {
+  const totalOrders = items.length;
+  const pendingPayment = items.reduce((count, item) => {
+    const status = (item.status || "").toLowerCase();
+    const state = (item.state || "").toLowerCase();
+    const isPending =
+      status.includes("pending") ||
+      status.includes("payment_review") ||
+      state.includes("pending") ||
+      state.includes("payment_review");
+    return count + (isPending ? 1 : 0);
+  }, 0);
+  const readyToShip = items.reduce((count, item) => {
+    const status = (item.status || "").toLowerCase();
+    const state = (item.state || "").toLowerCase();
+    const canceled = status.includes("cancel") || state.includes("cancel");
+    const ready =
+      ["processing", "picking", "on_picking", "on_delivery", "ready_to_ship", "shipping"].some(
+        (value) => status === value || state === value,
+      ) ||
+      status.includes("pick") ||
+      status.includes("ship") ||
+      status.includes("ready");
+    return count + (ready && !canceled ? 1 : 0);
+  }, 0);
+
+  return {
+    totalOrders,
+    pendingPayment,
+    readyToShip,
+  };
+}
+
 function OrdersPage() {
+  const [orders, setOrders] = useState([]);
+  const [summary, setSummary] = useState({
+    totalOrders: 0,
+    pendingPayment: 0,
+    readyToShip: 0,
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!apiUrl) {
+      setError("Magento API URL is not configured.");
+      setLoading(false);
+      return;
+    }
+    if (!apiToken) {
+      setError("Magento API token is not configured.");
+      setLoading(false);
+      return;
+    }
+
+    fetch(apiUrl, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiToken}`,
+      },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Failed to fetch orders: ${response.status} ${response.statusText}`);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        const items = Array.isArray(data.items) ? data.items : [];
+        setOrders(items.map(normalizeOrder));
+        setSummary(getSummary(items));
+        if (items.length === 0) {
+          setError("No orders returned from Magento.");
+        }
+      })
+      .catch((fetchError) => {
+        setError(fetchError.message);
+        setOrders([]);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
+
   return (
     <section className="orders-page">
       <OrdersHeader />
 
-      <OrdersToolbar />
+      <OrdersToolbar summary={summary} loading={loading} error={error} />
 
-      <OrdersTable />
+      <OrdersTable orders={orders} loading={loading} error={error} />
     </section>
   );
 }
