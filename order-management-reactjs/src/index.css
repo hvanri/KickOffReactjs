@@ -1,0 +1,260 @@
+:root {
+  color: #172b4d;
+  background: #f4f6f9;
+  border: #d6dbe8;
+  surface: #ffffff;
+  surface-muted: #f7f9fc;
+  surface-strong: #e4e8f0;
+  text-muted: #5f6f88;
+  accent: #1f6feb;
+  accent-soft: #eaf2ff;
+  accent-strong: #0f4fc1;
+  success: #2f8f6e;
+  warning: #d18c00;
+  danger: #c43d3d;
+  shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+  font-sans: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--color, #172b4d);
+  background: var(--background, #f4f6f9);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #f4f6f9;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+img,
+svg {
+  max-width: 100%;
+  display: block;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select {
+  border: 1px solid #c9d1df;
+  border-radius: 0.5rem;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid rgba(31, 111, 235, 0.35);
+  outline-offset: 2px;
+}
+
+.header {
+  background: #10213a;
+  color: #ffffff;
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  background: #ffffff;
+  color: #10213a;
+  border-radius: 0.75rem;
+  font-weight: 700;
+}
+
+.brand-text {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #99a5c0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.dashboard-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.sidebar {
+  width: 260px;
+  min-width: 260px;
+  background: #11203a;
+  color: #cbd7ec;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.sidebar-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 2rem;
+}
+
+.sidebar-brand strong {
+  color: #ffffff;
+  font-size: 1.1rem;
+}
+
+.sidebar-brand span {
+  color: #7a8caf;
+  font-size: 0.95rem;
+}
+
+.sidebar-nav {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.sidebar-link {
+  display: block;
+  padding: 0.9rem 1.1rem;
+  color: #cbd7ec;
+  border-radius: 0.75rem;
+  background: transparent;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.sidebar-link:hover,
+.sidebar-link.active {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+.sidebar-footer {
+  margin-top: 2rem;
+  color: #7d90b0;
+  font-size: 0.95rem;
+}
+
+.dashboard-content {
+  flex: 1;
+  overflow: auto;
+  padding: 1.5rem;
+  background: #f4f6f9;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  color: #10213a;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(16, 33, 58, 0.08);
+}
+
+.button-primary {
+  background: var(--accent);
+  color: #ffffff;
+  border-color: transparent;
+}
+
+.button-secondary {
+  background: #eef3ff;
+  color: #10213a;
+}
+
+.button-tertiary,
+.button-ghost {
+  background: #ffffff;
+  color: #10213a;
+  border-color: #d6dbe8;
+}
+
+@media (max-width: 960px) {
+  .dashboard-body {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    min-width: auto;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .dashboard-content {
+    padding: 1rem;
+  }
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-sans);
+  margin: 0;
+}
+
+p {
+  margin: 0;
+  color: #5f6f88;
+}
+
+@media (max-width: 720px) {
+  .header,
+  .dashboard-content {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
