@@ -8,6 +8,7 @@ function OrdersToolbar({
   onSearchTermChange,
   dateRange,
   onDateRangeChange,
+  onExport,
 }) {
   const { totalOrders, pendingPayment, readyToShip } = summary || {
     totalOrders: 0,
@@ -88,15 +89,20 @@ function OrdersToolbar({
       </form>
 
       <div className="toolbar-actions">
-        <button type="button" className="button button-secondary" disabled={loading || Boolean(error)}>
+        <button
+          type="button"
+          className="button button-secondary"
+          disabled={loading || Boolean(error)}
+          onClick={onExport}
+        >
           Export Orders
         </button>
-        <button type="button" className="button button-secondary" disabled={loading || Boolean(error)}>
+        {/* <button type="button" className="button button-secondary" disabled={loading || Boolean(error)}>
           Print Invoices
         </button>
         <button type="button" className="button button-secondary" disabled={loading || Boolean(error)}>
           Update Status
-        </button>
+        </button> */}
       </div>
     </section>
   );

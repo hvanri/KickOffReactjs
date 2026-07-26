@@ -213,6 +213,55 @@ function OrdersPage() {
     return matchesStatus && matchesSearch && matchesDate;
   });
 
+  const escapeCsvValue = (value) => {
+    const text = value == null ? "" : String(value);
+    return `"${text.replace(/"/g, '""')}"`;
+  };
+
+  const handleExport = () => {
+    if (!filteredOrders.length) {
+      return;
+    }
+
+    const headers = [
+      "Order #",
+      "Purchase Date",
+      "Bill To",
+      "Ship To",
+      "Payment",
+      "Grand Total",
+      "Status",
+      "Items",
+      "Item count",
+    ];
+
+    const rows = filteredOrders.map((order) => {
+      const itemNames = order.items.map((item) => item.name).join(" | ");
+      return [
+        order.id,
+        order.date,
+        order.billTo,
+        order.shipTo,
+        order.payment,
+        order.total,
+        order.status,
+        itemNames,
+        order.itemCount,
+      ].map(escapeCsvValue);
+    });
+
+    const csv = [headers.map(escapeCsvValue).join(","), ...rows.map((row) => row.join(","))].join("\r\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `orders-export-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <section className="orders-page">
       <OrdersHeader />
@@ -227,6 +276,7 @@ function OrdersPage() {
         onSearchTermChange={setSearchTerm}
         dateRange={dateRange}
         onDateRangeChange={setDateRange}
+        onExport={handleExport}
       />
 
       <OrdersTable orders={filteredOrders} loading={loading} error={error} />
