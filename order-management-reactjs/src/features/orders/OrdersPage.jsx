@@ -6,6 +6,8 @@ import "./orders.css";
 
 const apiUrl = import.meta.env.VITE_MAGENTO_API_URL;
 const apiToken = import.meta.env.VITE_MAGENTO_API_TOKEN;
+const apiUsername = import.meta.env.VITE_MAGENTO_API_USERNAME?.trim();
+const apiPassword = import.meta.env.VITE_MAGENTO_API_PASSWORD;
 
 function normalizeOrder(item) {
   const billing = item.billing_address || {};
@@ -138,31 +140,71 @@ function OrdersPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!apiUrl) {
-      setError("Magento API URL is not configured.");
-      setLoading(false);
-      return;
-    }
-    if (!apiToken) {
-      setError("Magento API token is not configured.");
-      setLoading(false);
-      return;
+    async function fetchAuthToken() {
+      if (!apiUsername || !apiPassword) {
+        throw new Error("Magento API credentials are not configured.");
+      }
+
+      const response = await fetch("/api/integration/admin/token", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: apiUsername,
+          password: apiPassword,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(
+          `Failed to refresh Magento token: ${response.status} ${response.statusText} ${errorText}`,
+        );
+      }
+
+      const rawToken = await response.text();
+      const trimmedToken = rawToken.trim();
+      try {
+        return JSON.parse(trimmedToken);
+      } catch {
+        return trimmedToken.replace(/^"(.*)"$/, "$1");
+      }
     }
 
-    fetch(apiUrl, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiToken}`,
-      },
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`Failed to fetch orders: ${response.status} ${response.statusText}`);
+    async function loadOrders(token, hasRefreshed = false) {
+      const response = await fetch(apiUrl, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.status === 401 && !hasRefreshed) {
+        const refreshedToken = await fetchAuthToken();
+        return loadOrders(refreshedToken, true);
+      }
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch orders: ${response.status} ${response.statusText}`);
+      }
+
+      return response.json();
+    }
+
+    async function loadData() {
+      try {
+        if (!apiUrl) {
+          throw new Error("Magento API URL is not configured.");
         }
-        return response.json();
-      })
-      .then((data) => {
+
+        let token = apiToken;
+        if (!token) {
+          token = await fetchAuthToken();
+        }
+
+        const data = await loadOrders(token);
         const items = Array.isArray(data.items) ? data.items : [];
         const normalizedOrders = items
           .map(normalizeOrder)
@@ -172,14 +214,15 @@ function OrdersPage() {
         if (items.length === 0) {
           setError("No orders returned from Magento.");
         }
-      })
-      .catch((fetchError) => {
+      } catch (fetchError) {
         setError(fetchError.message);
         setOrders([]);
-      })
-      .finally(() => {
+      } finally {
         setLoading(false);
-      });
+      }
+    }
+
+    loadData();
   }, []);
 
   const statusMap = {
